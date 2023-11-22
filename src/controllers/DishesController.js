@@ -1,4 +1,5 @@
 const knex = require("../database/knex");
+const DiskStorage = require("../providers/DiskStorage");
 const AppError = require("../utils/AppError");
 
 class DishesController {
@@ -6,18 +7,24 @@ class DishesController {
   // Create a new dish
   async create(request, response) {
     const { name, category, price, description, ingredients } = request.body;
-
+    
     const checkDishExists = await knex("dishes").where({ name }).first();
-
+    
     if (checkDishExists) {
       throw new AppError("Este prato já existe no cardápio");
     }
+    
+    const imageFilename = request.file.filename;
+    const diskStorage = new DiskStorage();
+
+    const filename = await diskStorage.saveFile(imageFilename);
 
     const [dish_id] = await knex("dishes").insert({
+      image: filename,
       name,
       description,
       price, 
-      category,
+      category
     });
 
     if (ingredients) {
@@ -30,7 +37,6 @@ class DishesController {
 
       await knex("ingredients").insert(ingredientsInsert);
     }
-
 
     return response.status(201).json({
       message: "Dish created!"
@@ -101,12 +107,15 @@ class DishesController {
     const { name, category, price, description, ingredients } = request.body;
     const { id } = request.params;
 
-    await knex("dishes").where({ id }).update({
-      name,
-      category,
-      price,
-      description
-    });
+    const dish = await knex("dishes").where({ id }).first();
+
+    dish.name = name ?? dish.name;
+    dish.category = category ?? dish.category;
+    dish.price = price ?? dish.price;
+    dish.description = description ?? dish.description;
+
+    await knex("dishes").where({ id }).update(dish)
+    await knex("dishes").where({ id }).update("updated_at", knex.fn.now());
 
     if (ingredients) {
       await knex("ingredients").where({ dish_id: id }).delete();
