@@ -3,17 +3,17 @@ const DiskStorage = require("../providers/DiskStorage");
 const AppError = require("../utils/AppError");
 
 class DishesController {
-  
+
   // Create a new dish
   async create(request, response) {
     const { name, category, price, description, ingredients } = request.body;
-    
+
     const checkDishExists = await knex("dishes").where({ name }).first();
-    
+
     if (checkDishExists) {
       throw new AppError("Este prato já existe no cardápio");
     }
-    
+
     const imageFilename = request.file.filename;
     const diskStorage = new DiskStorage();
 
@@ -23,12 +23,14 @@ class DishesController {
       image: filename,
       name,
       description,
-      price, 
+      price,
       category
     });
 
+    console.log(JSON.parse(ingredients));
+
     if (ingredients) {
-      const ingredientsInsert = ingredients.map(ingredient => {
+      const ingredientsInsert = JSON.parse(ingredients).map(ingredient => {
         return {
           name: ingredient,
           dish_id
@@ -62,7 +64,7 @@ class DishesController {
 
     await knex("dishes").where({ id }).delete();
 
-    return response.json({ 
+    return response.json({
       message: "Dish deleted!"
     });
   }
@@ -76,16 +78,16 @@ class DishesController {
     if (ingredients) {
 
       dishes = await knex("ingredients")
-      .select("*")
-      .whereLike("ingredients.name", `%${ingredients}%`)
-      .innerJoin("dishes", "dishes.id", "ingredients.dish_id")
-      .groupBy("dishes.id")
-      .orderBy("dishes.name")
+        .select("*")
+        .whereLike("ingredients.name", `%${ingredients}%`)
+        .innerJoin("dishes", "dishes.id", "ingredients.dish_id")
+        .groupBy("dishes.id")
+        .orderBy("dishes.name")
     } else {
       dishes = await knex("dishes")
-      .select("*")
-      .whereLike("dishes.name", `%${name}%`)
-      .orderBy("name");
+        .select("*")
+        .whereLike("dishes.name", `%${name}%`)
+        .orderBy("name");
     }
 
     const userIngredients = await knex("ingredients").select("*");
@@ -119,7 +121,7 @@ class DishesController {
 
     if (ingredients) {
       await knex("ingredients").where({ dish_id: id }).delete();
-      
+
       const ingredientsInsert = ingredients.map(ingredient => {
         return {
           name: ingredient,
