@@ -11,17 +11,23 @@ class FavoritesController {
     const user = await knex("users").where({ id: user_id }).first();
     const dish = await knex("dishes").where({ id: dish_id }).first();
 
+
     if (!user) {
-      throw new AppError("Usuário não encontrado")
+      throw new AppError("Usuário não encontrado.")
     }
 
     if (!dish) {
-      throw new AppError("Prato não encontrado");
+      throw new AppError("Prato não encontrado.");
     }
 
-    const id = await knex("favorites").insert({user_id, dish_id});
+    const dishAlreadyFavorited = await knex("favorites").where({ dish_id }).first();
+    if (dishAlreadyFavorited) {
+      throw new AppError("Este prato ja foi favoritado.");
+    }
 
-    return response.status(201).json({message: `Prato com id ${dish_id} favoritado com sucesso!`});
+    await knex("favorites").insert({ user_id, dish_id });
+
+    return response.status(201).json({ message: `Prato com id ${dish_id} favoritado com sucesso!` });
   }
 
   // Show all favorites dishes from a specific user based on user id
@@ -29,9 +35,9 @@ class FavoritesController {
     const user_id = request.user.id;
 
     const favoriteDishes = await knex("favorites")
-    .select(["dish_id", "dishes.name", "dishes.image", "favorites.id"])
-    .innerJoin("dishes", "dishes.id", "favorites.dish_id")
-    .where("favorites.user_id", user_id);
+      .select(["dish_id", "dishes.name", "dishes.image", "favorites.id"])
+      .innerJoin("dishes", "dishes.id", "favorites.dish_id")
+      .where("favorites.user_id", user_id);
 
     return response.json(favoriteDishes);
   }
@@ -42,7 +48,7 @@ class FavoritesController {
 
     await knex("favorites").where({ dish_id: id }).delete();
 
-    return response.json({message: "Dish removed from favorites successfully!"});
+    return response.json({ message: "Dish removed from favorites successfully!" });
   }
 }
 
