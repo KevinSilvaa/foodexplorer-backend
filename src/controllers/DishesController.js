@@ -14,6 +14,7 @@ class DishesController {
       throw new AppError("Este prato já existe no cardápio");
     }
 
+    console.log(request.file.filename)
     const imageFilename = request.file.filename;
     const diskStorage = new DiskStorage();
 
@@ -27,18 +28,14 @@ class DishesController {
       category
     });
 
-    console.log(JSON.parse(ingredients));
+    const ingredientsInsert = ingredients.map(ingredient => {
+      return {
+        name: ingredient,
+        dish_id
+      }
+    });
 
-    if (ingredients) {
-      const ingredientsInsert = JSON.parse(ingredients).map(ingredient => {
-        return {
-          name: ingredient,
-          dish_id
-        }
-      });
-
-      await knex("ingredients").insert(ingredientsInsert);
-    }
+    await knex("ingredients").insert(ingredientsInsert);
 
     return response.status(201).json({
       message: "Dish created!"
