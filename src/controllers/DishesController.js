@@ -14,7 +14,6 @@ class DishesController {
       throw new AppError("Este prato já existe no cardápio");
     }
 
-    console.log(request.file.filename)
     const imageFilename = request.file.filename;
     const diskStorage = new DiskStorage();
 
@@ -28,7 +27,7 @@ class DishesController {
       category
     });
 
-    const ingredientsInsert = ingredients.map(ingredient => {
+    const ingredientsInsert = ingredients.split(",").map(ingredient => {
       return {
         name: ingredient,
         dish_id
@@ -116,7 +115,7 @@ class DishesController {
     await knex("dishes").where({ id }).update(dish)
     await knex("dishes").where({ id }).update("updated_at", knex.fn.now());
 
-    if (ingredients) {
+    if (ingredients.length) {
       await knex("ingredients").where({ dish_id: id }).delete();
 
       const ingredientsInsert = ingredients.map(ingredient => {

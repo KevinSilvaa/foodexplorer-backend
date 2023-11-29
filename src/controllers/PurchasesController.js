@@ -1,4 +1,3 @@
-const AppError = require("../utils/AppError");
 const knex = require("../database/knex");
 
 class PurchasesController {
@@ -25,8 +24,6 @@ class PurchasesController {
     });
 
     const requestDetails = requestsWithTotalPrice.reduce((acc, item) => acc + `${item.quantity} X ${item.name}, `, "")
-
-    console.log(requestDetails);
 
     await knex("purchases").insert({
       user_id,
