@@ -3,24 +3,21 @@ require("express-async-errors");
 const AppError = require("./utils/AppError");
 const uploadConfig = require("./configs/upload");
 
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
 const routes = require("./routes");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 
-<<<<<<< HEAD
 app.use(cookieParser());
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://127.0.0.1:5173/", "https://foodexplorer-backend-8v1b.onrender.com"],
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173", "https://foodexplorer-kevinsilvaa.netlify.app"],
   credentials: true
 }));
 
-=======
->>>>>>> parent of 952fdc4 (Commit para o deploy)
 app.use("/files", express.static(uploadConfig.UPLOADS_FOLDER));
 
 app.use(routes);

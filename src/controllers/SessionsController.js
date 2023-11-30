@@ -31,7 +31,16 @@ class SessionsController {
       expiresIn
     });
 
-    response.json({ token, user, favorites });
+    response.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 30 * 60 * 1000
+    });
+
+    delete user.passowrd;
+
+    response.status(201).json({ user, favorites });
   }
 }
 
